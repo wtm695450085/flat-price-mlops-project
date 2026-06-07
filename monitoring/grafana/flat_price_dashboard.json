@@ -1,0 +1,167 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "flat-price-mlops-dashboard",
+    "title": "Flat Price MLOps Dashboard",
+    "tags": ["mlops", "fastapi", "mlflow", "prometheus", "drift"],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 2,
+    "refresh": "5s",
+    "panels": [
+      {
+        "type": "stat",
+        "title": "Total predictions",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "flat_price_predictions_total",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "title": "Prediction errors",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "flat_price_prediction_errors_total",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "title": "Last predicted price PLN",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "flat_price_last_predicted_price_pln",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "title": "Last area m2",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "flat_price_last_area_m2",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "type": "stat",
+        "title": "Data drift detected",
+        "description": "0 = no drift, 1 = drift detected",
+        "gridPos": {"x": 0, "y": 4, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "flat_price_data_drift_detected",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {
+                "type": "value",
+                "options": {
+                  "0": {
+                    "text": "NO DRIFT"
+                  },
+                  "1": {
+                    "text": "DRIFT"
+                  }
+                }
+              }
+            ]
+          },
+          "overrides": []
+        }
+      },
+      {
+        "type": "stat",
+        "title": "Rows used in drift report",
+        "gridPos": {"x": 6, "y": 4, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "flat_price_drift_production_rows",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "title": "Predictions over time",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "flat_price_predictions_total",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "title": "Prediction latency seconds",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "flat_price_prediction_latency_seconds_sum / flat_price_prediction_latency_seconds_count",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "title": "Last predicted price over time",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "flat_price_last_predicted_price_pln",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "title": "Input features over time",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "flat_price_last_area_m2",
+            "legendFormat": "area_m2",
+            "refId": "A"
+          },
+          {
+            "expr": "flat_price_last_distance_from_center_km",
+            "legendFormat": "distance_km",
+            "refId": "B"
+          },
+          {
+            "expr": "flat_price_last_rent_pln",
+            "legendFormat": "rent_pln",
+            "refId": "C"
+          }
+        ]
+      },
+      {
+        "type": "timeseries",
+        "title": "Data drift flag over time",
+        "description": "1 = drift detected, 0 = no drift",
+        "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "flat_price_data_drift_detected",
+            "refId": "A"
+          }
+        ]
+      }
+    ]
+  },
+  "overwrite": true
+}

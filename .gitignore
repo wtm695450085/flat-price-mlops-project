@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# MLflow local databases and artifacts
+mlflow.db
+mlruns/
+mlartifacts/
+
+# Prediction logs and runtime databases
+prediction_logs.db
+logs/
+outputs/
+
+# Docker / system
+*.log
+
+# Secrets
+.env
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+.vscode/

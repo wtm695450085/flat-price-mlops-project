@@ -1,3 +1,4 @@
+
 name: CI/CD - Flat Price MLOps Project
 
 on:
@@ -69,14 +70,24 @@ jobs:
 
             cd "$VPS_PROJECT_PATH"
 
+            echo "Pulling latest code..."
             git fetch origin main
             git reset --hard origin/main
 
-            docker compose up -d --build
+            echo "Starting Docker Compose..."
+            docker compose up -d --build --remove-orphans
 
+            echo "Docker containers:"
             docker compose ps
 
+            echo "Checking FastAPI..."
             curl -f http://127.0.0.1:8000/health
+
+            echo "Checking Prometheus..."
             curl -f http://127.0.0.1:9090/-/healthy
+
+            echo "Checking Grafana..."
             curl -f http://127.0.0.1:3000/api/health
+
+            echo "Deployment finished successfully."
           EOF

@@ -1,4 +1,3 @@
-
 name: CI/CD - Flat Price MLOps Project
 
 on:
@@ -36,10 +35,6 @@ jobs:
         run: |
           docker compose config
 
-      - name: Show project structure
-        run: |
-          find . -maxdepth 3 -type f | sort
-
   deploy-to-vps:
     runs-on: ubuntu-latest
     needs: basic-checks
@@ -47,16 +42,13 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Configure SSH
+      - name: Configure SSH key
         env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
           echo "$VPS_SSH_KEY" > ~/.ssh/vps_deploy_key
           chmod 600 ~/.ssh/vps_deploy_key
-          ssh-keyscan -p "${VPS_PORT:-22}" -H "$VPS_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy project on VPS
         env:
@@ -65,7 +57,10 @@ jobs:
           VPS_PORT: ${{ secrets.VPS_PORT }}
           VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
         run: |
-          ssh -i ~/.ssh/vps_deploy_key -p "${VPS_PORT:-22}" "$VPS_USER@$VPS_HOST" << EOF
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/vps_deploy_key \
+              -p "${VPS_PORT:-22}" \
+              "$VPS_USER@$VPS_HOST" << EOF
             set -e
 
             cd "$VPS_PROJECT_PATH"

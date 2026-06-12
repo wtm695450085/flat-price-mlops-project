@@ -1,6 +1,7 @@
 import os
 import json
 import sqlite3
+import subprocess
 import uuid
 import time
 from datetime import datetime, timezone
@@ -9,7 +10,7 @@ import mlflow
 import mlflow.pyfunc
 import pandas as pd
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, HTTPException
 from pydantic import BaseModel
 
 from prometheus_client import (
@@ -29,6 +30,7 @@ MLFLOW_TRACKING_URI = "sqlite:///mlflow.db"
 MODEL_URI = "models:/warsaw_flat_price_model@champion"
 PREDICTION_DB = "prediction_logs.db"
 DRIFT_REPORT_PATH = "outputs/drift_report.json"
+PROJECT_DIR = "/root/MLOps/Projekt_1"
 
 
 # ============================================================
@@ -384,3 +386,83 @@ def prometheus_metrics():
         content=generate_latest(),
         media_type=CONTENT_TYPE_LATEST
     )
+
+
+# ============================================================
+# ADMIN ENDPOINTS FOR AIRFLOW
+# ============================================================
+
+@app.post("/admin/run-drift-report")
+def admin_run_drift_report():
+    result = subprocess.run(
+        ["python", "src/monitoring/drift_report.py"],
+        cwd=PROJECT_DIR,
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": "error",
+                "stderr": result.stderr,
+                "stdout": result.stdout
+            }
+        )
+
+    return {
+        "status": "ok",
+        "task": "drift_report",
+        "stdout": result.stdout
+    }
+
+
+@app.post("/admin/retrain")
+def admin_retrain():
+    result = subprocess.run(
+        ["python", "src/training/retrain.py"],
+        cwd=PROJECT_DIR,
+        capture_output=True,
+        text=True,
+        timeout=900
+    )
+
+    if result.returncode != 0:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": "error",
+                "stderr": result.stderr,
+                "stdout": result.stdout
+            }
+        )
+
+    return {
+        "status": "ok",
+        "task": "retraining",
+        "stdout": result.stdout
+    }
+
+
+@app.post("/admin/reload-model")
+def admin_reload_model():
+    global model
+
+    try:
+        model = mlflow.pyfunc.load_model(MODEL_URI)
+
+        return {
+            "status": "ok",
+            "message": "Champion model reloaded",
+            "model_uri": MODEL_URI
+        }
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "status": "error",
+                "message": str(exc)
+            }
+        )

@@ -30,6 +30,8 @@ jobs:
         run: |
           python -m py_compile app/main.py
           python -m py_compile src/monitoring/drift_report.py
+          python -m py_compile src/training/retrain.py
+          python -m py_compile airflow/dags/flat_price_retraining_dag.py
 
       - name: Check Docker Compose configuration
         run: |
@@ -47,8 +49,9 @@ jobs:
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "$VPS_SSH_KEY" > ~/.ssh/vps_deploy_key
+          printf "%s\n" "$VPS_SSH_KEY" | tr -d '\r' > ~/.ssh/vps_deploy_key
           chmod 600 ~/.ssh/vps_deploy_key
+          ssh-keygen -y -f ~/.ssh/vps_deploy_key > /dev/null
 
       - name: Deploy project on VPS
         env:
@@ -72,17 +75,14 @@ jobs:
             echo "Starting Docker Compose..."
             docker compose up -d --build --remove-orphans
 
+            echo "Waiting for services..."
+            sleep 20
+
             echo "Docker containers:"
             docker compose ps
 
-            echo "Checking FastAPI..."
-            curl -f http://127.0.0.1:8000/health
+            echo "Running API smoke tests..."
+            bash scripts/api_smoke_test.sh
 
-            echo "Checking Prometheus..."
-            curl -f http://127.0.0.1:9090/-/healthy
-
-            echo "Checking Grafana..."
-            curl -f http://127.0.0.1:3000/api/health
-
-            echo "Deployment finished successfully."
+            echo "Deployment and API tests finished successfully."
           EOF
